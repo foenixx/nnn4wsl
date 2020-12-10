@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#echo "ARGS: " $*
+
+FPATH="$1"
+FNAME=$(basename "$1")
+ext="${FNAME##*.}"
+if [ -n "$ext" ]; then
+    ext="$(printf "%s" "${ext}" | tr '[:upper:]' '[:lower:]')"
+fi
+
+shift
+if [ -n "$*" ]; then
+  poshargs="-ArgumentList \""$*"\""
+  #echo $poshargs
+fi
+
+#adapted from https://superuser.com/questions/1160419/how-can-i-open-a-file-from-wsl-with-the-default-application
+case "${ext}" in
+    cmd|bat)
+      powershell.exe -Command Start-Process "`wslpath -w "$FPATH"`" -NoNewWindow $poshargs
+      ;;
+    *)
+      powershell.exe -Command Start-Process "`wslpath -w "$FPATH"`" $poshargs
+      ;;
+esac
