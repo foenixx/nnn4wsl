@@ -1,35 +1,40 @@
-#!/bin/bash
+#!/bin/zsh
 
-#echo "ARGS: " $*
-
+#if no parameters given then open current folder in explorer
 if [ -z "$*" ]; then
-  FPATH='"."'
-else
-
-  FPATH=`wslpath -w "$1"`
-  FPATH=\"$FPATH\"
-  FNAME=$(basename "$1")
-  ext="${FNAME##*.}"
-  if [ -n "$ext" ]; then
-    ext="$(printf "%s" "${ext}" | tr '[:upper:]' '[:lower:]')"
-  fi
+  powershell.exe -Command Start-Process "."
+  exit
 fi
+
+fullpath="$1"
+#echo "$fullpath"
+winpath=$(wslpath -w "$1")
+filename="${fullpath##*/}"
+extension="${fullpath##*.}"
+#incompatible with bash, zsh-specific
+extension="${extension:l}"
 
 shift
-if [ -n "$*" ]; then
-  poshargs="-ArgumentList \""$*"\""
-  #echo $poshargs
-fi
 
 #adapted from https://superuser.com/questions/1160419/how-can-i-open-a-file-from-wsl-with-the-default-application
-case "${ext}" in
+case "$extension" in
     cmd|bat)
-      #powershell.exe -Command Start-Process "`wslpath -w "$FPATH"`" -NoNewWindow $poshargs
-      cmd.exe /c "`wslpath -w "$FPATH"`"
+      winpath=$(wslpath -w "$fullpath")
+      #using "printf" because fucking "echo" treats sequences like "\t" in the output as escape sequences
+      #printf '%s\n' "$winpath" 
+      cmd.exe /c "$winpath" "$@"
+      ;;
+    doc|docx|xls|xlsx|pdf|jpg|jpeg|png|sql)
+      winpath=$(wslpath -w "$fullpath")
+      #poshargs="-ArgumentList "'"'$*'"'
+      powershell.exe -Command Start-Process "\"$winpath\""
       ;;
     *)
-
-      #powershell.exe -Command Start-Process "`wslpath -w "$FPATH"`" $poshargs
-      powershell.exe -Command Start-Process $FPATH $poshargsq
+      if [[ "$fullpath" =~ ^[^/]*$ ]]; then
+        ( "./$fullpath" "$@")
+      else
+        ( "$fullpath" "$@") 
+      fi
       ;;
 esac
+
