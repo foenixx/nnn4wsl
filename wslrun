@@ -1,8 +1,10 @@
 #!/bin/zsh
 
+pwsh='/mnt/c/Program Files/PowerShell/7-preview/pwsh.exe'
+
 #if no parameters given then open current folder in explorer
 if [ -z "$*" ]; then
-  powershell.exe -Command Start-Process "."
+  $pwsh -Command Start-Process "."
   exit
 fi
 
