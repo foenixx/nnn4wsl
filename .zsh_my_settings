@@ -39,3 +39,8 @@ n ()
             rm -f "$NNN_TMPFILE" > /dev/null
     fi
 }
+
+N()
+{
+	sudo -E nnn "$@"
+}
