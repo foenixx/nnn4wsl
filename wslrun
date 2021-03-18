@@ -7,7 +7,7 @@ ps_launch() {
 	name=$1
 	gui=$2
 	shift 2
-    if [ -z $* ]; then
+    if [ -z "$*" ]; then
       arglist=""
     else
       arglist=(-ArgumentList "\"${(j:",":)*}\"")
