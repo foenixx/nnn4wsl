@@ -10,13 +10,13 @@ ps_launch() {
     if [ -z "$*" ]; then
       arglist=""
     else
-      arglist=(-ArgumentList "\"${(j:",":)*}\"")
+      arglist=("-ArgumentList" "\"${(j:",":)*}\"")
     fi  
     #echo ${arglist}
     if [ $gui = true ]; then
-    	$pwsh -Command Start-Process "\"${name}\"" ${(j:",":)arglist}
+    	$pwsh -Command Start-Process "\"${name}\"" ${arglist}
     else	
-    	$pwsh -Command Start-Process "\"${name}\"" -NoNewWindow ${(j:",":)arglist} -Wait
+    	$pwsh -Command Start-Process "\"${name}\"" -NoNewWindow ${arglist} -Wait
     fi	
 }
 
