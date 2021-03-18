@@ -1,16 +1,36 @@
 #!/bin/zsh
 
-pwsh='/mnt/c/Program Files/PowerShell/7-preview/pwsh.exe'
+#pwsh='/mnt/c/Program Files/PowerShell/7-preview/pwsh.exe'
+
+ps_launch() {
+	pwsh='/mnt/c/Program Files/PowerShell/7-preview/pwsh.exe'
+	name=$1
+	gui=$2
+	shift 2
+    if [ -z $* ]; then
+      arglist=""
+    else
+      arglist=(-ArgumentList "\"${(j:",":)*}\"")
+    fi  
+    #echo ${arglist}
+    if [ $gui = true ]; then
+    	$pwsh -Command Start-Process "\"${name}\"" ${(j:",":)arglist}
+    else	
+    	$pwsh -Command Start-Process "\"${name}\"" -NoNewWindow ${(j:",":)arglist} -Wait
+    fi	
+}
 
 #if no parameters given then open current folder in explorer
 if [ -z "$*" ]; then
-  $pwsh -Command Start-Process "."
+  #$pwsh -Command Start-Process "."
+  ps_launch "." true
   exit
 fi
 
 fullpath="$1"
 #echo "$fullpath"
-winpath=$(wslpath -w "$1")
+winpath=$(wslpath -w "$1" || printf "%s" "$1")
+#echo "$winpath"
 filename="${fullpath##*/}"
 extension="${fullpath##*.}"
 #incompatible with bash, zsh-specific
@@ -21,15 +41,20 @@ shift
 #adapted from https://superuser.com/questions/1160419/how-can-i-open-a-file-from-wsl-with-the-default-application
 case "$extension" in
     cmd|bat)
-      winpath=$(wslpath -w "$fullpath")
       #using "printf" because fucking "echo" treats sequences like "\t" in the output as escape sequences
       #printf '%s\n' "$winpath" 
-      cmd.exe /c "$winpath" "$@"
+      #cmd.exe /c "$winpath" "$@"
+      ps_launch cmd.exe false /c "$winpath" "$@"
       ;;
-    doc|docx|xls|xlsx|pdf|jpg|jpeg|png|sql)
-      winpath=$(wslpath -w "$fullpath")
-      #poshargs="-ArgumentList "'"'$*'"'
-      powershell.exe -Command Start-Process "\"$winpath\""
+    doc|docx|xls|xlsx|pdf|jpg|jpeg|png|sql|exe)
+      if [ -z "$*" ]; then
+        poshargs=""
+      else
+        poshargs=(-ArgumentList "\"${(j:",":)*}\"")
+      fi  
+      #echo ${poshargs}
+      #$pwsh -Command Start-Process "\"$winpath\"" -NoNewWindow ${(j:",":)poshargs} -Wait
+      ps_launch ${winpath} false $*
       ;;
     *)
       if [[ "$fullpath" =~ ^[^/]*$ ]]; then
