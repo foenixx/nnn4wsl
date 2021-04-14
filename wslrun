@@ -1,9 +1,18 @@
 #!/bin/zsh
 
-#pwsh='/mnt/c/Program Files/PowerShell/7-preview/pwsh.exe'
+if [ "$1" = "sel-cmd" ]; then
+  cmd_vs="Open in VSCode"
+  cmd_copy_clip="Copy to win clipboard"
+  cmd=$(echo "$cmd_vs\n$cmd_copy_clip" | fzf )
+  echo $cmd
+  exit
+fi
+
+
+pwsh='/mnt/c/Program Files/PowerShell/7-preview/pwsh.exe'
+vscode='C:\Users\oleg\AppData\Local\Programs\Microsoft VS Code\Code.exe'
 
 ps_launch() {
-	pwsh='/mnt/c/Program Files/PowerShell/7-preview/pwsh.exe'
 	name=$1
 	gui=$2
 	shift 2
@@ -13,9 +22,11 @@ ps_launch() {
       arglist=("-ArgumentList" "\"${(j:",":)*}\"")
     fi  
     #echo ${arglist}
+    #printf "ps_launch: opening %s\n" "$name"
+    #printf "ps_launch: gui mode=%s\n" "$gui"
     if [ $gui = true ]; then
     	$pwsh -Command Start-Process "\"${name}\"" ${arglist}
-    else	
+    else
     	$pwsh -Command Start-Process "\"${name}\"" -NoNewWindow ${arglist} -Wait
     fi	
 }
@@ -27,10 +38,29 @@ if [ -z "$*" ]; then
   exit
 fi
 
+if [ "$1" = "code" ]; then
+  ps_launch "$vscode" true "."
+  exit
+fi
+
+if [ "$1" = ">clip" ]; then
+  ps_launch "clip.exe" true ""
+  exit
+fi
+
+gui_flag=false
+
+if [ "$1" = "--gui" ]; then
+  gui_flag=true
+  shift
+fi
+
+
+
 fullpath="$1"
-#echo "$fullpath"
-winpath=$(wslpath -w "$1" || printf "%s" "$1")
-#echo "$winpath"
+#printf "%s" "$fullpath"
+winpath=$(wslpath -w "$1" 2> /dev/null || printf "%s" "$1")
+#printf "%s" "$winpath"
 filename="${fullpath##*/}"
 extension="${fullpath##*.}"
 #incompatible with bash, zsh-specific
@@ -47,14 +77,9 @@ case "$extension" in
       ps_launch cmd.exe false /c "$winpath" "$@"
       ;;
     doc|docx|xls|xlsx|pdf|jpg|jpeg|png|sql|exe)
-      if [ -z "$*" ]; then
-        poshargs=""
-      else
-        poshargs=(-ArgumentList "\"${(j:",":)*}\"")
-      fi  
       #echo ${poshargs}
       #$pwsh -Command Start-Process "\"$winpath\"" -NoNewWindow ${(j:",":)poshargs} -Wait
-      ps_launch ${winpath} false $*
+      ps_launch "$winpath" "$gui_flag" $*
       ;;
     *)
       if [[ "$fullpath" =~ ^[^/]*$ ]]; then
