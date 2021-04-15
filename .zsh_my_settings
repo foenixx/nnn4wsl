@@ -1,7 +1,8 @@
 #!/bin/sh
 
 eval "$(jump shell)"
-export NNN_PLUG='j:autojump;e:-_|wslrun;p:-_less -iR $nnn*'
+
+export NNN_PLUG='j:autojump;e:-_|wslrun;c:-_|wslrun-vscode;p:-_less -iR $nnn*'
 export NNN_OPENER='wslrun-gui'
 export NNN_OPTS='c'
 #export NNN_ARCHIVE='\\.(7z|a|ace|alz|arc|arj|bz|bz2|cab|cpio|deb|gz|jar|lha|lz|lzh|lzma|lzo|rar|rpm|rz|t7z|tar|tbz|tbz2|tgz|tlz|txz|tZ|tzo|war|xpi|xz|Z|zip)$'
