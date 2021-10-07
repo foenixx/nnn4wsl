@@ -1,0 +1,107 @@
+#!/bin/sh
+
+export PATH=/usr/local/go/bin:/home/oleg/go/bin:/mnt/c/Users/oleg/AppData/Local/Programs/QuickLook:$PATH
+export PATH="/mnt/c/Program Files/PowerShell/7-preview":$PATH
+export vscode='"c:\Users\oleg\AppData\Local\Programs\Microsoft VS Code\Code.exe"'
+export WSLR_UNC_PREFIX='\\wsl$\Ubuntu-20.04'
+
+eval "$(jump shell)"
+
+wslr-buf-clear () {
+	# clear WSLR_BUFFER after each command
+	export WSLR_BUFFER=
+}
+
+add-zsh-hook precmd wslr-buf-clear
+
+# make any command starting from space to bypass history
+setopt histignorespace
+
+alias w="wslrun -e"
+
+
+my-accept-line () {
+	local magic=${BUFFER:0:3}
+	if [ "$magic" = " w " ];
+	then
+		# strip " w " prefix
+		export WSLR_BUFFER=${BUFFER:3}
+		zle .accept-line
+		return
+	fi
+	# split into arguments uzing usual shell rules (flag '(z)') then remove one level of quotes (flag '(Q)') then
+	# take 1st argument which is supposedly an executable name and then get file extension using ':t:e' options. 
+	local args=( "${(z)BUFFER}" )
+	local ext="${(Q)${args[1]}}"
+	ext="${ext:t:e}"
+	#echo $ext
+
+	case "$ext" in
+  		exe|cmd|bat)
+  		#echo "\nreplacing..."
+ 		export WSLR_BUFFER=$BUFFER
+ 		BUFFER=" w "$BUFFER
+ 		print -s -f "%s" "$WSLR_BUFFER"
+  	;;
+	esac
+  	zle .accept-line
+  	
+}
+zle -N accept-line my-accept-line
+
+
+# nnn plugins cheetsheet:
+#  k:plugin  # assing "k" to plugin
+#  k:-plugin # skip directory refresh after running a plugin
+#  k:!cmd    # execute shell command
+#  k:!cmd*   # skip user confirmation after command is finished
+#  k:&cmd    # run as gui command
+export NNN_PLUG='j:autojump;e:-!wslrun --gui .*;c:-!wslrun --gui $vscode .*;w:!wslu.sh*;p:-!less -iR $nnn*;t:preview-tui'
+#'x' is a zsh alias
+export NNN_OPENER='wslrun-open'
+export NNN_OPTS='cra'
+#export NNN_ARCHIVE='\\.(7z|a|ace|alz|arc|arj|bz|bz2|cab|cpio|deb|gz|jar|lha|lz|lzh|lzma|lzo|rar|rpm|rz|t7z|tar|tbz|tbz2|tgz|tlz|txz|tZ|tzo|war|xpi|xz|Z|zip)$'
+export VISUAL='micro'
+export EDITOR='micro'
+export sel=${XDG_CONFIG_HOME:-$HOME/.config}/nnn/.selection
+
+export PAGER=less
+[ -r "/usr/local/bin/lesspipe.sh" ] && export LESSOPEN="| lesspipe.sh %s"
+export LESS='-Ri '
+
+
+x ()
+{
+	wslrun --gui $@
+}
+
+n ()
+{
+    # Block nesting of nnn in subshells
+    if [ -n $NNNLVL ] && [ "${NNNLVL:-0}" -ge 1 ]; then
+        echo "nnn is already running"
+        return
+    fi
+
+    # The default behaviour is to cd on quit (nnn checks if NNN_TMPFILE is set)
+    # To cd on quit only on ^G, remove the "export" as in:
+    #     NNN_TMPFILE="${XDG_CONFIG_HOME:-$HOME/.config}/nnn/.lastd"
+    # NOTE: NNN_TMPFILE is fixed, should not be modified
+    export NNN_TMPFILE="${XDG_CONFIG_HOME:-$HOME/.config}/nnn/.lastd"
+
+    # Unmask ^Q (, ^V etc.) (if required, see `stty -a`) to Quit nnn
+    # stty start undef
+    # stty stop undef
+    # stty lwrap undef
+    # stty lnext undef
+
+    nnn "$@"
+
+    if [ -f "$NNN_TMPFILE" ]; then
+            . "$NNN_TMPFILE"
+            rm -f "$NNN_TMPFILE" > /dev/null
+    fi
+}
+
+
+alias N='sudo -E nnn -dH'

@@ -1,4 +1,9 @@
-.PHONY: all
+.PHONY: install build
 
-all:
-	go build -o "../wslrun2" -ldflags "-s -w"
+build:
+	@go build -o "wslrun" -ldflags "-s -w"
+
+install:
+	@cp -f "wslrun" /usr/local/bin
+	@cp -f "wslrun-open" /usr/local/bin
+
