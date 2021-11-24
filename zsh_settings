@@ -1,5 +1,9 @@
 #!/bin/sh
 
+export HISTSIZE=2000
+export SAVEHIST=1000
+setopt hist_save_no_dups
+
 export PATH=/usr/local/go/bin:/home/oleg/go/bin:/mnt/c/Users/oleg/AppData/Local/Programs/QuickLook:$PATH
 export PATH="/mnt/c/Program Files/PowerShell/7-preview":$PATH
 export vscode='"c:\Users\oleg\AppData\Local\Programs\Microsoft VS Code\Code.exe"'
@@ -56,7 +60,7 @@ zle -N accept-line my-accept-line
 #  k:!cmd    # execute shell command
 #  k:!cmd*   # skip user confirmation after command is finished
 #  k:&cmd    # run as gui command
-export NNN_PLUG='j:autojump;e:-!wslrun --gui .*;c:-!wslrun --gui $vscode .*;w:!wslu.sh*;p:-!less -iR $nnn*;t:preview-tui'
+export NNN_PLUG='j:autojump;e:-!wslrun --gui .*;c:-!wslrun --gui $vscode .*;w:!wslu.sh*;f:!wslu_find.sh*;p:-!less -iR $nnn*;t:preview-tui'
 #'x' is a zsh alias
 export NNN_OPENER='wslrun-open'
 export NNN_OPTS='cra'
@@ -105,3 +109,9 @@ n ()
 
 
 alias N='sudo -E nnn -dH'
+
+# https://github.com/junegunn/fzf/wiki/examples#command-history
+# fh - repeat history
+fh() {
+  print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed -E 's/ *[0-9]*\*? *//' | sed -E 's/\\/\\\\/g')
+}
