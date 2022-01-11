@@ -5,9 +5,7 @@ export SAVEHIST=1000
 setopt hist_save_no_dups
 
 export PATH=/usr/local/go/bin:/home/oleg/go/bin:/mnt/c/Users/oleg/AppData/Local/Programs/QuickLook:$PATH
-export PATH="/mnt/c/Program Files/PowerShell/7-preview":$PATH
-export vscode='"c:\Users\oleg\AppData\Local\Programs\Microsoft VS Code\Code.exe"'
-export WSLR_UNC_PREFIX='\\wsl$\Ubuntu-20.04'
+export WSLR_UNC_PREFIX='\\wsl$\Ubuntu'
 
 eval "$(jump shell)"
 
@@ -59,12 +57,13 @@ zle -N accept-line my-accept-line
 #  k:-plugin # skip directory refresh after running a plugin
 #  k:!cmd    # execute shell command
 #  k:!cmd*   # skip user confirmation after command is finished
-#  k:&cmd    # run as gui command
-export NNN_PLUG='j:autojump;e:-!wslrun --gui .*;c:-!wslrun --gui $vscode .*;w:!wslu.sh*;f:!wslu_find.sh*;p:-!less -iR $nnn*;t:preview-tui'
-#'x' is a zsh alias
+#  k:&cmd    # run as gui command\
+NNN_PLUG_DU='d:!dust -d 1'
+export NNN_PLUG='j:autojump;e:-!wslrun --gui .*;c:-!wslrun --hidden --gui code.cmd .*;w:!wslu.sh*;f:!wslu_find.sh*;p:-!less -iR $nnn*;t:preview-tui;'$NNN_PLUG_DU
+
+
 export NNN_OPENER='wslrun-open'
 export NNN_OPTS='cra'
-#export NNN_ARCHIVE='\\.(7z|a|ace|alz|arc|arj|bz|bz2|cab|cpio|deb|gz|jar|lha|lz|lzh|lzma|lzo|rar|rpm|rz|t7z|tar|tbz|tbz2|tgz|tlz|txz|tZ|tzo|war|xpi|xz|Z|zip)$'
 export VISUAL='micro'
 export EDITOR='micro'
 export sel=${XDG_CONFIG_HOME:-$HOME/.config}/nnn/.selection
@@ -73,7 +72,7 @@ export PAGER=less
 [ -r "/usr/local/bin/lesspipe.sh" ] && export LESSOPEN="| lesspipe.sh %s"
 export LESS='-Ri '
 
-
+#'x' is a zsh alias
 x ()
 {
 	wslrun --gui $@
